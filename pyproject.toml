@@ -1,0 +1,6 @@
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-v"
+testpaths = ["backend/tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"

@@ -1,0 +1,209 @@
+JARVIS
+
+Implementation Design Document
+
+Local-first • Private • Modular • Free-only model routing
+
+Proposed architecture • Five test-gated phases
+
+1. Purpose and Scope
+
+JARVIS is a general-purpose personal AI assistant that accepts natural-language requests, plans work, selects capabilities/tools, executes bounded steps and presents results in an immersive UI.
+
+Goals
+
+Local-first UI, backend and database on the laptop; hosted models accessed through approved provider APIs.
+
+OmniRoute/provider adapter allows eligible free routes only; paid fallback is disabled.
+
+Modular capabilities; UI is built in Phase 1 and extended/tested in every phase.
+
+Persistent tasks and user-controlled memory, visible progress and approval for sensitive actions.
+
+Coding-review MCP is researched and tested separately, then integrated only in Phase 5.
+
+Constraints / non-goals
+
+Target hardware: Intel i5, 8 GB RAM and about 90 GB free disk; no mandatory local LLM or fine-tuning.
+
+If all eligible free routes are unavailable, pause/report clearly rather than using a paid route.
+
+AgentOS integration is deferred until JARVIS is stable; A2A is out of scope initially.
+
+2. Technology Stack
+
+Layer
+
+Technology
+
+Responsibility
+
+Frontend
+
+Next.js App Router, React, TypeScript
+
+Command center, tasks, settings, results
+
+UI / motion
+
+Tailwind CSS, shadcn/ui, Motion
+
+Reusable components and animation
+
+3D / charts
+
+React Three Fiber + Drei; Recharts
+
+Optional lightweight 3D and visualizations
+
+Backend
+
+Python, FastAPI, Pydantic
+
+API, validation, task lifecycle, permissions
+
+Orchestration
+
+LangGraph
+
+Planning, bounded execution and recovery
+
+Database
+
+MongoDB
+
+Tasks, events, memory, settings and audit
+
+Model routing
+
+OmniRoute via adapter
+
+Eligible free routes and controlled fallback
+
+Streaming
+
+REST + Server-Sent Events (SSE)
+
+Requests and live progress
+
+Testing
+
+Pytest, Vitest, RTL, Playwright
+
+Unit, integration and end-to-end tests
+
+3. High-Level Architecture
+
+Frontend communicates with FastAPI via REST/SSE. FastAPI persists tasks, invokes LangGraph and enforces permissions. The model adapter permits only eligible free routes. MongoDB stores durable state; capabilities are modular. Coding MCP is added in Phase 5.
+
+4. Task Flow
+
+Each task is bounded and observable. Provider errors trigger limited retries and an alternative eligible free route when configured. If none remain, JARVIS pauses or fails clearly.
+
+5. UI Concept
+
+Visual direction: immersive dark command center, restrained sci-fi details, clear task status and responsive layout. 3D effects are optional and must remain lightweight.
+
+Screen
+
+Purpose
+
+Command Center
+
+Task input, quick actions, system status and recent tasks
+
+Task Execution
+
+Plan, current step, progress, tool activity, retries/errors
+
+Results
+
+Answer, citations, files, charts and copy/download
+
+Settings & Privacy
+
+Free-only routes, memory, privacy and retry settings
+
+Approval Dialog
+
+Exact action/diff, validation results, Approve / Reject
+
+6. Project Structure
+
+jarvis/├── frontend/                  # Next.js UI│   ├── app/  components/  lib/  tests/├── backend/│   └── app/│       ├── api/  core/  orchestration/│       ├── model_router/  capabilities/│       ├── memory/  permissions/│       ├── database/  schemas/│       └── tests/├── integrations/coding_mcp/   # Phase 5 integration├── docs/  scripts/├── .env.example  .gitignore  README.md
+
+7. Five-Phase Execution Plan
+
+Phase 1 — Foundation + UI
+
+Build repository, design system, command center, task list/detail/settings shell, FastAPI health/readiness, MongoDB connection and frontend/backend wiring. Use clearly labeled mock responses for unfinished features.
+
+Gate: UI submits/displays demo task; backend and DB connect; error/offline states work; basic tests pass.
+
+Phase 2 — Assistant Core
+
+Implement LangGraph lifecycle, persistent tasks, OmniRoute adapter, free-only allowlist, bounded retries, provider error handling and SSE progress.
+
+Gate: real eligible free model completes an end-to-end task; state survives restart; paid fallback is blocked; streaming/failure tests pass.
+
+Phase 3 — Practical Capabilities
+
+Add web research, file/document analysis, multi-step execution, structured outputs and capability registry; update existing UI for every output type.
+
+Gate: research, document and multi-step scenarios pass; citations, path permissions, output validation and UI rendering are tested.
+
+Phase 4 — Memory, Personalization + Safety
+
+Add user-controlled memory, project context, action-specific approvals, privacy controls, audit records, recovery and reliability improvements.
+
+Gate: memory review/edit/delete works; changed actions need new approval; privacy, safety, recovery and regression tests pass.
+
+Phase 5 — Coding MCP + Release
+
+Independently test coding MCP, integrate via capability registry, add findings/diff/validation/approval UI, test free-model fallback and run full regression.
+
+Gate: MCP tests pass; unsafe patches cannot be applied; fallback/no-free-route cases work; clean-install and full regression pass.
+
+8. Testing and Delivery Rules
+
+Every phase ends with explicit acceptance tests; do not proceed with unresolved critical failures.
+
+Test backend, API contract, UI state and end-to-end behavior for each feature.
+
+Use mocked failure scenarios, then verify real eligible free routes.
+
+Enforce free-only routing in code/configuration, not prompts or UI labels alone.
+
+Require approval for consequential actions and coding patch application.
+
+Avoid logging secrets; measure RAM and responsiveness on the actual 8 GB laptop.
+
+9. Deferred Work and Risks
+
+Item / risk
+
+Decision
+
+Coding MCP
+
+Separate research/build/test; integrate only in Phase 5.
+
+Colab inference
+
+Optional; verify current terms and reliability; keep backend replaceable.
+
+Free model quotas
+
+Can change or run out; pause if no eligible free route remains.
+
+Local model
+
+Optional experiment only; not required for initial operation.
+
+AgentOS / A2A
+
+AgentOS adapter after stability; A2A and extra infrastructure deferred.
+
+Definition of Done
+
+Initial release is ready when all five phase gates pass, UI and backend remain integrated, free-only routing is enforced, capabilities are modular and tested, approvals/privacy controls work, the coding MCP passes its independent tests, and setup is reproducible on the target laptop.
